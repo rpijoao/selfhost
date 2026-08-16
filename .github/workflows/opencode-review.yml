@@ -2,6 +2,11 @@ name: opencode-review
 on:
   pull_request:
     types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: opencode-review-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 jobs:
   review:
     runs-on: ubuntu-latest
@@ -9,15 +14,15 @@ jobs:
       id-token: write
       contents: write
       pull-requests: write
-      issues: write
+    env:
+      GIT_AUTHOR_NAME: "OpenCode Bot"
+      GIT_AUTHOR_EMAIL: "opencode-bot@users.noreply.github.com"
+      GIT_COMMITTER_NAME: "OpenCode Bot"
+      GIT_COMMITTER_EMAIL: "opencode-bot@users.noreply.github.com"
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Configure git identity
-        run: |
-          git config --global user.name "OpenCode Bot"
-          git config --global user.email "opencode-bot@users.noreply.github.com"
       - uses: anomalyco/opencode/github@latest
         env:
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
